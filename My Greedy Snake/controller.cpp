@@ -168,17 +168,13 @@ void Controller::gamePlayControl()
 		selectMode();
 		drawMap();
 		drawSocre();
-		int tmp = beginPlay();
-		if (tmp == 2)
-		{
-			system("cls");
-			continue;
-		}
+		beginPlay();
+
 	}
 }
 
 //开始游戏
-int Controller::beginPlay()
+void Controller::beginPlay()
 {
 	Snake *csnake = new Snake();
 	Food *cfood = new Food();
@@ -190,20 +186,8 @@ int Controller::beginPlay()
 	{
 		if (!csnake->changeDirection())//ESC暂停
 		{
-			int tmp = this->pauseMenu();
-			switch (tmp)
-			{
-			case 2:
-				delete csnake;
-				delete cfood;
-				return 2;
-			case 3:
-				delete csnake;
-				delete cfood;
-				exit(0);
-			default:
-				break;
-			}
+			this->pauseMenu();
+			
 		}
 		if (csnake->getFood(*cfood))//吃到食物
 		{
@@ -238,7 +222,7 @@ void Controller::drawSocre()//绘制分数
 	cout << m_score;
 }
 
-int Controller::pauseMenu()
+void Controller::pauseMenu()
 {
 	this->Map::setCursorPosition(32, 19);
 	this->Map::setColor(3);
@@ -299,7 +283,7 @@ int Controller::pauseMenu()
 					this->Map::setCursorPosition(32, 19);
 					this->Map::setColor(3);
 					cout << "继续游戏";
-					this->Map::setColor(3);
+					//this->Map::setColor(3);
 					this->Map::setBackColor();
 					this->Map::setCursorPosition(32, 21);
 					cout << "重新开始";
@@ -342,8 +326,15 @@ int Controller::pauseMenu()
 		this->Map::setCursorPosition(32, 23);
 		cout << "          ";
 	}
-
-	return key;
+	if (key == 2)
+	{
+		this->gamePlayControl();
+	}
+	if (key == 3)
+	{
+		exit(0);
+	}
+	
 }
 
 void Controller::gameOverMenu()

@@ -19,13 +19,13 @@ public:
 
 	void gamePlayControl();//游戏控制
 
-	int beginPlay();//开始游戏
+	void beginPlay();//开始游戏
 
 	void upDateScore();//更新分数
 
 	void drawSocre();//绘制分数
 
-	int pauseMenu();//暂停菜单
+	void pauseMenu();//暂停菜单
 
 	void gameOverMenu();//游戏结束菜单
 
