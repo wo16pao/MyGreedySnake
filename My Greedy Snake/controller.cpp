@@ -16,7 +16,7 @@ void Controller::startGame()
 {
 	Map::setWindowSize(41, 32);//设置窗口大小
 	//Map::setColor(1);//设置字体颜色
-	m_save_score.clear();
+	m_save_score.clear();//清理
 	this->loadScore();//游戏开始读取分数
 }
 
@@ -386,7 +386,7 @@ void Controller::gameOverMenu()
 	this->Map::setColor(7);
 	cout << "退出";
 
-	this->showScoreRank();
+	this->showScoreRank();//显示分数
 
 	this->Map::setCursorPosition(0, 31);
 
@@ -459,14 +459,14 @@ void Controller::saveScore()
 	{
 		return;
 	}
-	if(m_save_score.size() <= 5)
+	if(m_save_score.size() <= 5)//若小于5个则全部储存
 	{
 		for (vector<int>::iterator it = m_save_score.begin(); it != m_save_score.end(); it++)
 		{
 			ofs << *it << endl;
 		}
 	}
-	else
+	else//否则只储存前面5个
 	{
 		for (int i = 0; i < 5; i++)
 		{
@@ -490,18 +490,18 @@ void Controller::loadScore()
 	{
 		m_save_score.push_back(tmp_score);
 	}
-	sort(m_save_score.begin(), m_save_score.end(),greater<int>());
+	sort(m_save_score.begin(), m_save_score.end(),greater<int>());//排序
 	ifs.close();
 }
 
 //展示分数排名
 void Controller::showScoreRank()
 {
-	this->updateScoreRank();
+	this->updateScoreRank();//刷新分数
 	this->Map::setCursorPosition(17, 10);
 	this->Map::setColor(7);
 	cout << "分数排名：";
-	int pos = 12;
+	int pos = 12;//分数显示位置
 	for (int i = 0; i < m_save_score.size(); i++)
 	{
 		this->Map::setCursorPosition(17, pos);
@@ -515,18 +515,18 @@ void Controller::showScoreRank()
 //更新分数排名
 void Controller::updateScoreRank()
 {
-	if (isRank() && !isSameRank())
+	if (isRank() && !isSameRank())//上榜则更新分数
 	{
 		if(m_save_score.size() >= 5)
 		{
-			m_save_score.back() = m_score;
+			m_save_score.back() = m_score;//将最小的分数更新
 		}
 		else
 		{
-			m_save_score.push_back(m_score);
+			m_save_score.push_back(m_score);//若不足5个分数则添加
 		}
-		this->saveScore();
-		sort(m_save_score.begin(), m_save_score.end(), greater<int>());
+		this->saveScore();//储存到文件中
+		sort(m_save_score.begin(), m_save_score.end(), greater<int>());//排序
 	}
 	
 }
@@ -534,18 +534,18 @@ void Controller::updateScoreRank()
 //判断是否上榜
 bool Controller::isRank()
 {
-	if (int(m_save_score.size()) < 5)
+	if (int(m_save_score.size()) < 5)//若记录不足5个，则称为上榜
 	{
 		return true;
 	}
-	if (m_score >= m_save_score.back())
+	else if (m_score >= m_save_score.back())//若大于最后一个分数，也为上榜
 	{
 		return true;
 	}
 	return false;
 }
 
-//判读上榜分数是否重复
+//判读上榜分数是否重复，重复就不显示，但是为上榜，重复为true
 bool Controller::isSameRank()
 {
 	for (vector<int>::iterator it = m_save_score.begin(); it != m_save_score.end(); it++)
