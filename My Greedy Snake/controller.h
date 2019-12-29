@@ -29,6 +29,7 @@ public:
 
 	void gameOverMenu();//ÓÎÏ·½áÊø²Ëµ¥
 
+	void saveScore();
 
 private:
 

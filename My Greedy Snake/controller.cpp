@@ -50,6 +50,8 @@ void Controller::selectMode()
 	this->Map::setCursorPosition(18, 18);
 	cout << "地狱模式";
 
+	this->Map::setCursorPosition(0, 31);
+
 	bool flag = false;//记录是否按回车确定
 	this->m_key = 1;//默认选中简单模式
 	int ch;//用来获取上下键的ASCII码
@@ -137,22 +139,23 @@ void Controller::selectMode()
 		default:
 			break;
 		}
+		this->Map::setCursorPosition(0, 31);
 		if (flag)//确定后退出while循环
 		{
 			break;
 		}
 	}
-	//根据模式确定小蛇速度
+	//根据模式确定小蛇速度,值越小速度越快
 	switch (m_key)
 	{
 	case 1:
 		m_speed = 150;
 		break;
 	case 2:
-		m_speed = 125;
+		m_speed = 120;
 		break;
 	case 3:
-		m_speed = 100;
+		m_speed = 90;
 		break;
 	default:
 		break;
@@ -162,13 +165,13 @@ void Controller::selectMode()
 //游戏控制
 void Controller::gamePlayControl()
 {
-	startGame();
+	startGame();//绘制窗体
 	while(true)
 	{
-		selectMode();
-		drawMap();
-		drawSocre();
-		beginPlay();
+		selectMode();//选择难度
+		drawMap();//绘制地图
+		drawSocre();//绘制分数
+		beginPlay();//开始游戏
 
 	}
 }
@@ -176,44 +179,49 @@ void Controller::gamePlayControl()
 //开始游戏
 void Controller::beginPlay()
 {
+	srand((unsigned)time(NULL));//设置开始方向和食物的随机值
 	Snake *csnake = new Snake();
 	Food *cfood = new Food();
 	csnake->initSnake();//打印初始化蛇
-	srand((unsigned)time(NULL));
 	cfood->drawFood(*csnake);
 
 	while (!csnake->hitSomething())
 	{
 		if (!csnake->changeDirection())//ESC暂停
 		{
-			this->pauseMenu();
+			this->pauseMenu();//暂停菜单
 			
 		}
 		if (csnake->getFood(*cfood))//吃到食物
 		{
-			csnake->addSnake();
-			this->upDateScore();
-			this->drawSocre();
-			m_speed--;
-			cfood->drawFood(*csnake);
+			csnake->addSnake();//身子变长
+			this->upDateScore();//更新分数
+			this->drawSocre();//绘制更新了的分数
+			if (m_speed != 0)
+				m_speed--;//速度加快
+			cfood->drawFood(*csnake);//绘制新的食物
 		}
 		else//自动移动
 		{
 			csnake->moveSnake();
 		}
-		Sleep(m_speed);
+		Sleep(m_speed);//speed越小速度越快
 	}
+	if (csnake->hitSomething())//如果撞到
+		this->gameOverMenu();//游戏结束菜单
 
 	delete csnake;
 	delete cfood;
 }
 
-void Controller::upDateScore()//更新分数
+//更新分数
+void Controller::upDateScore()
 {
-	m_score++;
+	m_score += m_key;
 }
 
-void Controller::drawSocre()//绘制分数
+//绘制分数
+void Controller::drawSocre()
 {
 	this->Map::setCursorPosition(32, 15);
 	this->Map::setColor(3);
@@ -222,8 +230,10 @@ void Controller::drawSocre()//绘制分数
 	cout << m_score;
 }
 
+//暂停菜单
 void Controller::pauseMenu()
 {
+	//暂停菜单选项
 	this->Map::setCursorPosition(32, 19);
 	this->Map::setColor(3);
 	this->Map::setBackColor();
@@ -234,6 +244,8 @@ void Controller::pauseMenu()
 	this->Map::setCursorPosition(32, 23);
 	cout << "退出游戏";
 	
+	this->Map::setCursorPosition(0,31);
+
 	int key = 1;
 	char ch;
 	bool flag = false;
@@ -241,14 +253,14 @@ void Controller::pauseMenu()
 	{
 		switch (ch = _getch())
 		{
-		case 72:
+		case 72://Up
 			if (key > 1)
 			{
 				switch (key)
 				{
 				case 2:
 					this->Map::setCursorPosition(32, 19);
-					this->Map::setColor(3);
+					//this->Map::setColor(3);
 					this->Map::setBackColor();
 					cout << "继续游戏";
 
@@ -260,7 +272,7 @@ void Controller::pauseMenu()
 					break;
 				case 3:
 					this->Map::setCursorPosition(32, 21);
-					this->Map::setColor(3);
+					//this->Map::setColor(3);
 					this->Map::setBackColor();
 					cout << "重新开始";
 					this->Map::setCursorPosition(32, 23);
@@ -274,7 +286,7 @@ void Controller::pauseMenu()
 				}
 			}
 			break;
-		case 80:
+		case 80://Down
 			if (key < 3)
 			{
 				switch (key)
@@ -284,8 +296,8 @@ void Controller::pauseMenu()
 					this->Map::setColor(3);
 					cout << "继续游戏";
 					//this->Map::setColor(3);
-					this->Map::setBackColor();
 					this->Map::setCursorPosition(32, 21);
+					this->Map::setBackColor();
 					cout << "重新开始";
 
 					key = 2;
@@ -295,7 +307,7 @@ void Controller::pauseMenu()
 					this->Map::setColor(3);
 					cout << "重新开始";
 					this->Map::setCursorPosition(32, 23);
-					this->Map::setColor(3);
+					//this->Map::setColor(3);
 					this->Map::setBackColor();
 					cout << "退出游戏";
 
@@ -312,11 +324,12 @@ void Controller::pauseMenu()
 		default:
 			break;
 		}
+		this->Map::setCursorPosition(0, 31);
 		if(flag)
 			break;
 
 	}
-
+	//继续游戏，清除掉暂停菜单的内容
 	if (key == 1)
 	{
 		this->Map::setCursorPosition(32, 19);
@@ -325,11 +338,14 @@ void Controller::pauseMenu()
 		cout << "          ";
 		this->Map::setCursorPosition(32, 23);
 		cout << "          ";
+		Sleep(400);//延迟0.4s后开始
 	}
+	//重新开始
 	if (key == 2)
 	{
 		this->gamePlayControl();
 	}
+	//退出
 	if (key == 3)
 	{
 		exit(0);
@@ -337,7 +353,86 @@ void Controller::pauseMenu()
 	
 }
 
+//游戏结束菜单
 void Controller::gameOverMenu()
 {
-	
+	Sleep(300);
+	//绘制游戏结束菜单
+	this->Map::setCursorPosition(12, 10);
+	this->Map::setColor(4);
+	cout << "Game Over !!! ";
+	this->Map::setCursorPosition(12, 12);
+	cout << "你的分数为： " << m_score;
+	this->Map::setCursorPosition(12, 14);
+	cout << "是否再来一局？";
+	this->Map::setCursorPosition(12, 16);
+	this->Map::setBackColor();
+	cout << "确定";
+	this->Map::setCursorPosition(15, 16);
+	this->Map::setColor(4);
+	cout << "退出";
+
+	this->Map::setCursorPosition(0, 31);
+
+	int key = 1;
+	int flag = false;
+	char ch;
+	while (ch=_getch())
+	{
+		switch (ch)
+		{
+		case 75://Left
+			if (key == 2)
+			{
+				this->Map::setCursorPosition(12, 16);
+				this->Map::setBackColor();
+				cout << "确定";
+				this->Map::setCursorPosition(15, 16);
+				this->Map::setColor(4);
+				cout << "退出";
+
+				key = 1;
+			}
+			break;
+		case 77://Right
+			if (key == 1)
+			{
+				this->Map::setCursorPosition(12, 16);
+				cout << "确定";
+				this->Map::setCursorPosition(15, 16);
+				this->Map::setBackColor();
+				cout << "退出";
+
+				key = 2;
+			}
+			break;
+		case 13://Enter
+			flag = true;
+			break;
+		default:
+			break;
+		}
+		this->Map::setCursorPosition(0, 31);
+		if (flag)
+		{
+			break;
+		}
+
+	}
+	//重新开始
+	if (key == 1)
+	{
+		this->gamePlayControl();
+	}
+	//退出
+	else if (key == 2)
+	{
+		exit(0);
+	}
 }
+
+void Controller::saveScore()
+{
+
+}
+
