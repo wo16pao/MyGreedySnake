@@ -3,6 +3,8 @@
 #include <conio.h>
 #include <time.h>
 #include <windows.h>
+#include <fstream>
+#include <algorithm>
 
 Controller::Controller()
 {
@@ -14,7 +16,7 @@ void Controller::startGame()
 {
 	Map::setWindowSize(41, 32);//设置窗口大小
 	//Map::setColor(1);//设置字体颜色
-	
+	this->loadScore();//游戏开始读取分数
 }
 
 //绘制游戏地图
@@ -195,7 +197,7 @@ void Controller::beginPlay()
 		if (csnake->getFood(*cfood))//吃到食物
 		{
 			csnake->addSnake();//身子变长
-			this->upDateScore();//更新分数
+			this->updateScore();//更新分数
 			this->drawSocre();//绘制更新了的分数
 			if (m_speed != 0)
 				m_speed--;//速度加快
@@ -208,14 +210,16 @@ void Controller::beginPlay()
 		Sleep(m_speed);//speed越小速度越快
 	}
 	if (csnake->hitSomething())//如果撞到
+	{
 		this->gameOverMenu();//游戏结束菜单
+	}
 
 	delete csnake;
 	delete cfood;
 }
 
 //更新分数
-void Controller::upDateScore()
+void Controller::updateScore()
 {
 	m_score += m_key;
 }
@@ -358,19 +362,30 @@ void Controller::gameOverMenu()
 {
 	Sleep(300);
 	//绘制游戏结束菜单
-	this->Map::setCursorPosition(12, 10);
-	this->Map::setColor(4);
+	this->Map::setCursorPosition(8, 10);
+	this->Map::setColor(7);
 	cout << "Game Over !!! ";
-	this->Map::setCursorPosition(12, 12);
+	this->Map::setCursorPosition(8, 12);
 	cout << "你的分数为： " << m_score;
-	this->Map::setCursorPosition(12, 14);
+	this->Map::setCursorPosition(8, 14);
+	if(isRank())
+	{
+		cout << "恭喜您上榜！";
+	}
+	else
+	{
+		cout << "很遗憾，您未上榜";
+	}
+	this->Map::setCursorPosition(8, 16);
 	cout << "是否再来一局？";
-	this->Map::setCursorPosition(12, 16);
+	this->Map::setCursorPosition(8, 18);
 	this->Map::setBackColor();
 	cout << "确定";
-	this->Map::setCursorPosition(15, 16);
-	this->Map::setColor(4);
+	this->Map::setCursorPosition(11, 18);
+	this->Map::setColor(7);
 	cout << "退出";
+
+	this->showScoreRank();
 
 	this->Map::setCursorPosition(0, 31);
 
@@ -384,11 +399,11 @@ void Controller::gameOverMenu()
 		case 75://Left
 			if (key == 2)
 			{
-				this->Map::setCursorPosition(12, 16);
+				this->Map::setCursorPosition(8, 18);
 				this->Map::setBackColor();
 				cout << "确定";
-				this->Map::setCursorPosition(15, 16);
-				this->Map::setColor(4);
+				this->Map::setCursorPosition(11, 18);
+				this->Map::setColor(7);
 				cout << "退出";
 
 				key = 1;
@@ -397,9 +412,9 @@ void Controller::gameOverMenu()
 		case 77://Right
 			if (key == 1)
 			{
-				this->Map::setCursorPosition(12, 16);
+				this->Map::setCursorPosition(8, 18);
 				cout << "确定";
-				this->Map::setCursorPosition(15, 16);
+				this->Map::setCursorPosition(11, 18);
 				this->Map::setBackColor();
 				cout << "退出";
 
@@ -429,10 +444,105 @@ void Controller::gameOverMenu()
 	{
 		exit(0);
 	}
+
+
+
 }
 
+//分数储存  
 void Controller::saveScore()
 {
+	ofstream ofs;
+	ofs.open("score.txt", ios::out);
+	if (!ofs.is_open())
+	{
+		return;
+	}
+	for (vector<int>::iterator it = m_save_score.begin();it!=m_save_score.end();it++)
+	{
+		ofs << *it << endl;
+	}
+	ofs.close();
+}
 
+//加载分数
+void Controller::loadScore()
+{
+	ifstream ifs;
+	ifs.open("score.txt", ios::in);
+	if (!ifs.is_open())
+	{
+		return;
+	}
+	int tmp_score;
+	while (ifs >> tmp_score)
+	{
+		m_save_score.push_back(tmp_score);
+	}
+	sort(m_save_score.begin(), m_save_score.end(),greater<int>());
+	ifs.close();
+}
+
+//展示分数排名
+void Controller::showScoreRank()
+{
+	this->updateScoreRank();
+	this->Map::setCursorPosition(17, 10);
+	this->Map::setColor(7);
+	cout << "分数排名：";
+	int pos = 12;
+	for (int i = 0; i < m_save_score.size(); i++)
+	{
+		this->Map::setCursorPosition(17, pos);
+		cout << "第" << i + 1 << "名";
+		this->Map::setCursorPosition(21, pos);
+		cout << m_save_score[i];
+		pos += 2;
+	}
+}
+
+//更新分数排名
+void Controller::updateScoreRank()
+{
+	if (isRank() && !isSameRank())
+	{
+		if(!m_save_score.empty())
+		{
+			m_save_score.back() = m_score;
+			this->saveScore();
+			sort(m_save_score.begin(), m_save_score.end(), greater<int>());
+		}
+		else
+		{
+			m_save_score.push_back(m_score);
+		}
+	}
+}
+
+//判断是否上榜
+bool Controller::isRank()
+{
+	if (m_save_score.empty())
+	{
+		return true;
+	}
+	if (m_score >= m_save_score.back())
+	{
+		return true;
+	}
+	return false;
+}
+
+//判读上榜分数是否重复
+bool Controller::isSameRank()
+{
+	for (vector<int>::iterator it = m_save_score.begin(); it != m_save_score.end(); it++)
+	{
+		if (*it == m_score)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
