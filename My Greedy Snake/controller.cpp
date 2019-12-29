@@ -16,6 +16,7 @@ void Controller::startGame()
 {
 	Map::setWindowSize(41, 32);//设置窗口大小
 	//Map::setColor(1);//设置字体颜色
+	m_save_score.clear();
 	this->loadScore();//游戏开始读取分数
 }
 
@@ -458,9 +459,19 @@ void Controller::saveScore()
 	{
 		return;
 	}
-	for (vector<int>::iterator it = m_save_score.begin();it!=m_save_score.end();it++)
+	if(m_save_score.size() <= 5)
 	{
-		ofs << *it << endl;
+		for (vector<int>::iterator it = m_save_score.begin(); it != m_save_score.end(); it++)
+		{
+			ofs << *it << endl;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			ofs << m_save_score[i];
+		}
 	}
 	ofs.close();
 }
@@ -506,23 +517,24 @@ void Controller::updateScoreRank()
 {
 	if (isRank() && !isSameRank())
 	{
-		if(!m_save_score.empty())
+		if(m_save_score.size() >= 5)
 		{
 			m_save_score.back() = m_score;
-			this->saveScore();
-			sort(m_save_score.begin(), m_save_score.end(), greater<int>());
 		}
 		else
 		{
 			m_save_score.push_back(m_score);
 		}
+		this->saveScore();
+		sort(m_save_score.begin(), m_save_score.end(), greater<int>());
 	}
+	
 }
 
 //判断是否上榜
 bool Controller::isRank()
 {
-	if (m_save_score.empty())
+	if (int(m_save_score.size()) < 5)
 	{
 		return true;
 	}
